@@ -1,5 +1,15 @@
 # VetECG
 
+[![Live app](https://img.shields.io/badge/app-vetecg.bozhenik.com-2ea44f?logo=googlechrome&logoColor=white)](https://vetecg.bozhenik.com)
+[![Deploy](https://github.com/hats/vetecg/actions/workflows/deploy.yml/badge.svg)](https://github.com/hats/vetecg/actions/workflows/deploy.yml)
+[![Version](https://img.shields.io/github/v/tag/hats/vetecg?label=version&sort=semver)](https://github.com/hats/vetecg/tags)
+[![License: AGPL-3.0](https://img.shields.io/github/license/hats/vetecg)](LICENSE)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![Runs in browser](https://img.shields.io/badge/runs-in%20browser%2C%20no%20server-informational)
+
+**Try it: https://vetecg.bozhenik.com** — open the page and press «Попробовать на примере» (try an example) to analyze a
+sample sheet. Your files never leave the browser.
+
 A browser app that turns ECG printouts of dogs and cats into numbers and a draft report. It takes JPEG exports from the
 «Поли-Спектр.NET» electrocardiograph software (Neurosoft Poly-Spectrum.NET) and:
 
