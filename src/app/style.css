@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@plugin 'daisyui' {
+  themes: light --default;
+}
+
+/* Light theme without a switcher (§5): the sheet is white, the overlay reads better on a light background. */

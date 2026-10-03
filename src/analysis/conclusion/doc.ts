@@ -1,0 +1,137 @@
+/**
+ * Renders the document `docs/slovar-zaklyucheniya.md` from the phrase dictionary (`phrases.ts`).
+ * The document is a file snapshot of the `doc.test.ts` test; to update: `npx vitest run src/analysis/conclusion -u`.
+ */
+import * as P from './phrases';
+
+function esc(text: string): string {
+  return text.replace(/\|/g, '\\|');
+}
+
+function table(header: [string, string], rows: Readonly<Record<string, string>>): string[] {
+  return [
+    `| ${header[0]} | ${header[1]} |`,
+    '|---|---|',
+    ...Object.entries(rows).map(([key, value]) => `| \`${key}\` | ${esc(value)} |`),
+  ];
+}
+
+export function renderPhrasesDoc(): string {
+  const directionRows: string[] = [];
+  for (const [param, codes] of Object.entries(P.DIRECTION)) {
+    for (const [code, text] of Object.entries(codes)) directionRows.push(`| \`${param}\` | \`${code}\` | ${esc(text)} |`);
+  }
+  const kindRows = Object.entries(P.ECTOPIC_KIND).map(([k, forms]) => `| \`${k}\` | ${forms.join(' / ')} |`);
+
+  return [
+    '# Словарь формулировок заключения',
+    '',
+    '> Файл собирается из `src/analysis/conclusion/phrases.ts` тестом-снимком `src/analysis/conclusion/doc.test.ts` — те же данные использует `compose`. Не править руками: изменить словарь и выполнить `npx vitest run src/analysis/conclusion -u`.',
+    '',
+    'Плейсхолдеры `{имя}` подставляет `compose`. Коды ритма, очагов, эпизодов и причин приходят от модулей `rhythm`, `measure` и `case`; у каждого кода есть русский запасной вариант — английский код в текст не попадает. Ненадёжные значения (уверенность ниже 0.6 или значение отсутствует) в тексте числом не фигурируют: только названием параметра в строке «Ненадёжные измерения».',
+    '',
+    '## Порядок строк заключения',
+    '',
+    '1. Ритм и ЧСС с нормой вида (одна строка).',
+    '2. Синусовая аритмия с видовой трактовкой — только если выявлена.',
+    '3. Электрическая ось.',
+    '4. Отклонения от нормы по параметрам (или «не выявлено»); затем пограничные значения, если есть.',
+    '5. Экстрасистолы: количество, тип, очаг «ориентировочно», интервал сцепления (или «не выявлено»).',
+    '6. Эпизоды несинусового ритма (или «не выявлено»).',
+    '7. Ненадёжные измерения — если есть.',
+    '8. Препараты; запись и минуты мониторинга; пометки.',
+    `9. Последняя строка всегда: «${P.VERIFICATION}»`,
+    '',
+    `Если ни одно измерение не надёжно, текст состоит из двух строк: «${P.ANALYSIS_IMPOSSIBLE}» и пометки о верификации; таблица содержит «${P.TABLE.unreliable}» в каждой строке.`,
+    '',
+    '## Названия параметров',
+    '',
+    '| Ключ | В таблице | В тексте |',
+    '|---|---|---|',
+    ...Object.keys(P.ROW_LABEL).map((key) => `| \`${key}\` | ${P.ROW_LABEL[key]} | ${P.PARAM_TEXT[key]} |`),
+    '',
+    '## Таблица результата',
+    '',
+    ...table(['Ключ', 'Текст'], P.TABLE),
+    '',
+    '## Ритм',
+    '',
+    ...table(['Код `RhythmReport.type`', 'Формулировка'], P.RHYTHM),
+    '',
+    `Неизвестный код: «${P.RHYTHM_FALLBACK}». Причины несинусового/неопределённого ритма добавляются шаблоном «${P.RHYTHM_REASONS.trim()}».`,
+    '',
+    '## ЧСС',
+    '',
+    ...table(['Ключ', 'Шаблон'], { withRange: P.HR.withRange, meanOnly: P.HR.meanOnly, noNorm: P.HR.noNorm, unreliable: P.HR.unreliable }),
+    '',
+    ...table(['Класс', 'Суффикс'], Object.fromEntries(Object.entries(P.HR.verdict).map(([k, v]) => [k, v || '(пусто)']))),
+    '',
+    '## Синусовая аритмия',
+    '',
+    ...table(['Вид', 'Формулировка'], P.SINUS_ARRHYTHMIA),
+    '',
+    '## Электрическая ось',
+    '',
+    ...table(['Класс', 'Шаблон'], P.AXIS),
+    '',
+    '## Отклонения параметров',
+    '',
+    ...table(['Ключ', 'Шаблон'], P.DEVIATIONS),
+    '',
+    'Направление отклонения по параметру и ключу `<класс>_<сторона>` (сторона: `above`, `below`, `sign` — знак при величине в норме, `inside` — пограничное по правилу); нет записи у параметра — берётся `default`.',
+    '',
+    '| Параметр | Ключ | Формулировка |',
+    '|---|---|---|',
+    ...directionRows,
+    '',
+    '## Экстрасистолы',
+    '',
+    ...table(['Ключ', 'Шаблон'], P.ECTOPICS),
+    '',
+    '| Вид (`Ectopic.kind`) | Склонения 1 / 2–4 / 5+ |',
+    '|---|---|',
+    ...kindRows,
+    `| прочее | ${P.ECTOPIC_KIND_FALLBACK.join(' / ')} |`,
+    '',
+    ...table(['Очаг (`focus`)', 'Текст'], P.FOCUS),
+    '',
+    `Неизвестный очаг: «${P.FOCUS_FALLBACK}». Очаг всегда с пометкой «ориентировочно» (ARRHYTHM-03).`,
+    '',
+    '## Эпизоды несинусового ритма',
+    '',
+    ...table(['Ключ', 'Шаблон'], P.EPISODES),
+    '',
+    ...table(['Вид (`Episode.kind`)', 'Текст'], P.EPISODE_KIND),
+    '',
+    `Неизвестный вид: «${P.EPISODE_KIND_FALLBACK}».`,
+    '',
+    '## Ненадёжные измерения, препараты, запись, пометки',
+    '',
+    ...table(['Ключ', 'Шаблон'], {
+      unreliableList: P.UNRELIABLE_LIST,
+      drugsNone: P.DRUGS.none,
+      drugsGiven: P.DRUGS.given,
+      recordWithMinutes: P.RECORD.withMinutes,
+      recordNoMinutes: P.RECORD.noMinutes,
+      flagsList: P.FLAGS.list,
+      precisionKnown: P.PRECISION.known,
+      precisionUnknown: P.PRECISION.unknown,
+      pause: P.PAUSE,
+      pNotAllCounted: P.P_NOT_ALL_COUNTED,
+    }),
+    '',
+    ...table(['Пометка (`ConclusionInputs.flags`)', 'Текст'], P.FLAGS.items),
+    '',
+    '## Причины',
+    '',
+    ...table(['Код причины', 'Текст'], P.REASONS),
+    '',
+    `Неизвестный код: «${P.REASON_FALLBACK}». Коды вида \`not_implemented:<unit>\` и \`exception:<msg>\` сопоставляются по части до двоеточия.`,
+    '',
+    '## Склонения',
+    '',
+    `- Листы: ${P.PLURALS.pages.join(' / ')}.`,
+    `- Удары: ${P.PLURALS.beats.join(' / ')}.`,
+    '',
+  ].join('\n');
+}

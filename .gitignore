@@ -1,0 +1,7 @@
+node_modules
+dist
+.idea
+*.local
+
+# Autopilot: pid и лог локального сервера дашборда (описывают только эту машину)
+.autopilot/serve.*

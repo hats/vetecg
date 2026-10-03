@@ -1,0 +1,101 @@
+/*
+ * Print version of the result (story 72): the active sheet with overlay (#sheet, task 11), table and conclusion
+ * (#results). Service elements — header, case tabs, sheet strip, case panel, buttons — are hidden.
+ * Verdict colours are kept (print-color-adjust), table rows are not split across pages.
+ */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  header.navbar,
+  #case-tabs,
+  #sheets,
+  #case-panel,
+  #file-input,
+  dialog,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  #case {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  #sheet {
+    min-height: 0 !important;
+    border: none !important;
+    overflow: visible !important;
+    break-inside: avoid;
+  }
+
+  /*
+   * Inside #sheet only the sheet image with the overlay goes to paper: everything that contains no canvas or raster
+   * (overlay toolbar, badges, hints, placeholder) is hidden. Browsers without :has() print the toolbar as is.
+   */
+  #sheet *:not(:has(canvas, img)):not(canvas):not(img) {
+    display: none !important;
+  }
+
+  /*
+   * The Konva stage keeps its screen size in inline styles (wider than an A4 page — the sheet got cut on the right):
+   * stretch the container to the page width with the sheet's aspect ratio (`--sheet-aspect` is set by results/index.ts
+   * from the first canvas; default — variant A sheet 1280×905), and the layers to the whole container.
+   */
+  #sheet .konvajs-content {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: var(--sheet-aspect, 1280 / 905);
+  }
+
+  #sheet .konvajs-content canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  #sheet > img,
+  #sheet img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  #results {
+    margin-top: 6mm;
+  }
+
+  #results .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #results .card-body {
+    padding: 0 !important;
+  }
+
+  #results table {
+    font-size: 10pt;
+  }
+
+  #results tr {
+    break-inside: avoid;
+  }
+
+  #results .print-only {
+    display: block;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
